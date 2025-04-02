@@ -56,7 +56,26 @@ let riderInfo ridedata (totalRides: int) (gender: int) =
     (float numPersons / float totalRides) * 100.0
 
   (numPersons, percentage)
+
+let filterData data func = 
+  List.filter func data
+
+let rec ages data acc = 
+  match cleandata with
+  |> [] -> acc
+  |> hd::tl -> ages tl (acc + (List.item 8 hd))
+
+// let avgAge ridedata numRides = 
+//   let cleandata = filterData ridedata (fun ride -> List.iter 8 ride > 0)
+//   // List.iter(fun ride -> 
+//   //   (System.DateTime.Now.Year - (List.item 8 ride))
+//   //   )
+//   let rec ages data = 
+//     match cleandata with
+//     |> 
   
+
+
 
 
 
