@@ -47,19 +47,15 @@ let printHead list : unit =
 
 
 let riderInfo ridedata (totalRides: int) (gender: int) = 
-  let numMales = 
+  let numPersons = 
     ridedata
-    |> List.filter (fun ride -> List.length ride > 8 && List.item 8 ride = gender)
+    |> List.filter (fun ride -> List.item 7 ride = gender)
     |> List.length
+  
+  let percentage =
+    (float numPersons / float totalRides) * 100.0
 
-  let percentage = (float numMales / float totalRides) * 100.0
-
-  (numMales, percentage)
-
-
-// let femaleRiderInfo ridedata totalRides = 
-//   let numFemales = 
-
+  (numPersons, percentage)
   
 
 
@@ -81,7 +77,7 @@ let main argv =
 
   printf "Enter the name of the file with the Divvy ride data: "
   // let filename = System.Console.ReadLine()  Commented out for testing
-  let filename = "divvy-01-2019.csv"
+  let filename = "divvy-07-01-2018.csv"
   let contents = System.IO.File.ReadLines(filename)
   let ridedata = ParseInput contents
 
@@ -102,9 +98,10 @@ let main argv =
   printfn ""
   
 
-  let (numMales, percentage) = riderInfo ridedata numTrips 1
-  printfn "Number of Riders Identifying as Male: %A (%A%%)" numMales percentage
-  printfn "Number of Riders Identifying as Female: %A (%A%%)" 0 0.0
+  let (numMales, percentageMale) = riderInfo ridedata numTrips 1
+  let (numFemales, percentageFemale) = riderInfo ridedata numTrips 2
+  printfn "Number of Riders Identifying as Male: %A (%A%%)" numMales percentageMale
+  printfn "Number of Riders Identifying as Female: %A (%A%%)" numFemales percentageFemale
   printfn ""
   
   printfn "Average Age: %A" 0.0

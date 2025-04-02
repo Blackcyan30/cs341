@@ -1,43 +1,49 @@
 {
   "format": 1,
   "restore": {
-    "/home/talha/Documents/uni/spring2025/cs341/proj3/proj3.fsproj": {}
+    "/Users/talha/Documents/uni/cs341/proj3/proj3.fsproj": {}
   },
   "projects": {
-    "/home/talha/Documents/uni/spring2025/cs341/proj3/proj3.fsproj": {
+    "/Users/talha/Documents/uni/cs341/proj3/proj3.fsproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/home/talha/Documents/uni/spring2025/cs341/proj3/proj3.fsproj",
+        "projectUniqueName": "/Users/talha/Documents/uni/cs341/proj3/proj3.fsproj",
         "projectName": "proj3",
-        "projectPath": "/home/talha/Documents/uni/spring2025/cs341/proj3/proj3.fsproj",
-        "packagesPath": "/home/talha/.nuget/packages/",
-        "outputPath": "/home/talha/Documents/uni/spring2025/cs341/proj3/obj/",
+        "projectPath": "/Users/talha/Documents/uni/cs341/proj3/proj3.fsproj",
+        "packagesPath": "/Users/talha/.nuget/packages/",
+        "outputPath": "/Users/talha/Documents/uni/cs341/proj3/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/home/talha/.nuget/NuGet/NuGet.Config"
+          "/Users/talha/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
-          "net8.0"
+          "net9.0"
         ],
         "sources": {
-          "/usr/lib/dotnet/sdk/8.0.114/FSharp/library-packs": {},
+          "/usr/local/share/dotnet/sdk/9.0.201/FSharp/library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
-          "net8.0": {
-            "targetAlias": "net8.0",
+          "net9.0": {
+            "targetAlias": "net9.0",
             "projectReferences": {}
           }
-        }
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.200"
       },
       "frameworks": {
-        "net8.0": {
-          "targetAlias": "net8.0",
+        "net9.0": {
+          "targetAlias": "net9.0",
           "dependencies": {
             "FSharp.Core": {
               "include": "Runtime, Compile, Build, Native, Analyzers, BuildTransitive",
               "target": "Package",
-              "version": "[8.0.102, )",
+              "version": "[9.0.201, )",
               "generatePathProperty": true
             }
           },
@@ -57,7 +63,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/8.0.114/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.201/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
