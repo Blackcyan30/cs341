@@ -57,3 +57,4 @@
 /Users/talha/Documents/uni/cs341/proj3/obj/Debug/net8.0/proj3.fsproj.Up2Date
 /Users/talha/Documents/uni/cs341/proj3/obj/Debug/net8.0/proj3.genruntimeconfig.cache
 /Users/talha/Documents/uni/cs341/proj3/obj/Debug/net8.0/ref/proj3.dll
+/home/talha/Documents/uni/spring2025/cs341/proj3/obj/Debug/net8.0/proj3.sourcelink.json

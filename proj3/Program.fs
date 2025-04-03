@@ -1,5 +1,7 @@
 ﻿// @author Muhammad Talha Adnan Khan
-// @
+// @file Program.fs
+// @description This program takes in a csv file and outputs
+// statistics regarding that file for divvy bike data of chicago.
 // --------------------------------------------------------------
 // 
 // ParseLine and ParseInput
@@ -22,6 +24,8 @@
 //    gender          (0 if not specified, 1 if identifies as male, 2 if identifies as female)
 //    birth_year      (0 if not specified)
 // 
+
+
 let ParseLine (line:string) = 
   let tokens = line.Split(',')
   let ints = Array.map System.Int32.Parse tokens
@@ -31,20 +35,10 @@ let rec ParseInput lines =
   let rides = Seq.map ParseLine lines
   Seq.toList rides
 
-
 let printHead list : unit = 
   list 
   |> List.truncate 5
   |> List.iter (fun innerList -> printfn "%A" innerList)
-
-// let rec tripsInFile contents (acc: int): int =
-//   match contents with
-//   | [] -> acc
-//   | head::tail -> tripsInFile tail (acc + 1)
-
-// let tripsInFile ridedata =
-//   ridedata |> List.length
-
 
 let riderInfo ridedata (totalRides: int) (gender: int) = 
   let numPersons = 
@@ -60,23 +54,52 @@ let riderInfo ridedata (totalRides: int) (gender: int) =
 let filterData data func = 
   List.filter func data
 
-let rec ages data acc = 
-  match cleandata with
-  |> [] -> acc
-  |> hd::tl -> ages tl (acc + (List.item 8 hd))
+let rec ages data ( acc: int ) =
+  match data with
+  | [] -> acc
+  | hd::tl -> ages tl (acc + ( System.DateTime.Now.Year - (List.item 8 hd) ))
 
-// let avgAge ridedata numRides = 
-//   let cleandata = filterData ridedata (fun ride -> List.iter 8 ride > 0)
-//   // List.iter(fun ride -> 
-//   //   (System.DateTime.Now.Year - (List.item 8 ride))
-//   //   )
-//   let rec ages data = 
-//     match cleandata with
-//     |> 
-  
+let avgAge ridedata: float =
+  let cleaneddata = filterData ridedata ( fun ride -> (List.item 8 ride > 0) )
+  let totalAge = ages cleaneddata 0
+  let numRides = List.length cleaneddata
+  float totalAge / float numRides
 
+let ridesByTripDuration ridedata ( startTime: int ) ( endTime: int ): int =
+  ridedata
+  |> List.filter (fun ride -> List.item 2 ride > startTime && List.item 2 ride <= endTime)
+  |> List.length
 
+let ridesOverTwoHours ridedata: int =
+  ridedata
+  |> List.filter (fun ride -> List.item 2 ride > 7200)
+  |> List.length
 
+let ridesByHour ridedata ( hour: int ): int = 
+  ridedata
+  |> List.filter( fun ride -> List.item 3 ride = hour )
+  |> List.length
+
+let histDisplayUnit ridedata ( hour: int ): unit =
+  let rec displayStars numStars: unit =
+    if numStars > 0 then
+      printf "*"
+      displayStars (numStars - 1)
+
+  let baseDisplay ( hour: int ): unit =
+    printf "   %A: " hour
+
+  let numRides: int = ridesByHour ridedata hour
+  baseDisplay hour
+  displayStars (numRides / 100)
+  printfn "%A" numRides
+
+let rec histDisplay ridedata ( acc: int ) = 
+  if acc >= 24 then 
+    ()
+  else
+    histDisplayUnit ridedata acc
+    histDisplay ridedata (acc + 1)
 
 
 // --------------------------------------------------------------
@@ -88,77 +111,45 @@ let main argv =
 
   printfn "Project 3: Divvy Rides Data Analysis with F#"
   printfn "CS 341, Spring 2025"
-  printfn ""
+  printfn "0.0"
   printfn "This application allows you to analyze and visualize"
   printfn "information about Divvy bike rides in Chicago, such as"
   printfn "the number of male/female riders, the average age, etc."
   printfn ""
 
   printf "Enter the name of the file with the Divvy ride data: "
-  // let filename = System.Console.ReadLine()  Commented out for testing
-  let filename = "divvy-07-01-2018.csv"
+  let filename = System.Console.ReadLine()
   let contents = System.IO.File.ReadLines(filename)
   let ridedata = ParseInput contents
 
-// -------------------------------------------------------
-// Code written by me.
-
-
-  // printHead ridedata
-
-
-
-// -------------------------------------------------------
-
   let numTrips = ( ridedata |> List.length )
-  // let numTrips = tripsInFile ridedata 0
   printfn ""
   printfn "Number of Trips: %A" numTrips
   printfn ""
-  
 
   let (numMales, percentageMale) = riderInfo ridedata numTrips 1
   let (numFemales, percentageFemale) = riderInfo ridedata numTrips 2
   printfn "Number of Riders Identifying as Male: %A (%A%%)" numMales percentageMale
   printfn "Number of Riders Identifying as Female: %A (%A%%)" numFemales percentageFemale
   printfn ""
-  
-  printfn "Average Age: %A" 0.0
+ 
+  let age = avgAge ridedata
+  printfn "Average Age: %A" age
   printfn ""
-  
+
+  let firstInterval = ridesByTripDuration ridedata 0 ( 30 * 60 )
+  let secondInterval = ridesByTripDuration ridedata ( 30 * 60 ) ( 60 * 60 )
+  let thirdInterval = ridesByTripDuration ridedata ( 60 * 60 ) ( 120 * 60 )
+  let fourthInterval = ridesOverTwoHours ridedata
   printfn "Ride Durations: "
-  printfn "   0-30 mins: %A (%A%%)" 0 0.0
-  printfn "   30-60 mins: %A (%A%%)" 0 0.0
-  printfn "   60-120 mins: %A (%A%%)" 0 0.0
-  printfn "   > 2 hours: %A (%A%%)" 0 0.0
+  printfn "   0-30 mins: %A (%A%%)" firstInterval ( (float firstInterval / float numTrips) * 100.0)
+  printfn "   30-60 mins: %A (%A%%)" secondInterval ( (float secondInterval / float numTrips) * 100.0)
+  printfn "   60-120 mins: %A (%A%%)" thirdInterval ( (float thirdInterval / float numTrips) * 100.0)
+  printfn "   > 2 hours: %A (%A%%)" fourthInterval ( (float fourthInterval / float numTrips) * 100.0)
   printfn ""
   
   printfn "Histogram of Start Times:"
-  printfn "   0: 0"
-  printfn "   1: 0"
-  printfn "   2: 0"
-  printfn "   3: 0"
-  printfn "   4: 0"
-  printfn "   5: 0"
-  printfn "   6: 0"
-  printfn "   7: 0"
-  printfn "   8: 0"
-  printfn "   9: 0"
-  printfn "   10: 0"
-  printfn "   11: 0"
-  printfn "   12: 0"
-  printfn "   13: 0"
-  printfn "   14: 0"
-  printfn "   15: 0"
-  printfn "   16: 0"
-  printfn "   17: 0"
-  printfn "   18: 0"
-  printfn "   19: 0"
-  printfn "   20: 0"
-  printfn "   21: 0"
-  printfn "   22: 0"
-  printfn "   23: 0"
-
+  histDisplay ridedata 0
   printfn ""
   printfn "Exiting program."
   0
