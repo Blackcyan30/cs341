@@ -35,7 +35,7 @@ let rec ParseInput lines =
   let rides = Seq.map ParseLine lines
   Seq.toList rides
 
-let printHead list : unit = 
+let printHead list: unit = 
   list 
   |> List.truncate 5
   |> List.iter (fun innerList -> printfn "%A" innerList)
