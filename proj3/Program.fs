@@ -65,7 +65,7 @@ let avgAge ridedata: float =
   let cleaneddata = filterData ridedata ( fun ride -> (List.item 8 ride > 0) )
   let totalAge = ages cleaneddata 0
   let numRides = List.length cleaneddata
-  if numRides = 0 then 0.0 else float totalAge / float numRides
+  if numRides = 0 then 0.0 else ( float totalAge / float numRides )
 
 let ridesByTripDuration ridedata ( startTime: int ) ( endTime: int ): int =
   ridedata
