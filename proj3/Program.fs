@@ -65,7 +65,7 @@ let avgAge ridedata: float =
   let cleaneddata = filterData ridedata ( fun ride -> (List.item 8 ride > 0) )
   let totalAge = ages cleaneddata 0
   let numRides = List.length cleaneddata
-  float totalAge / float numRides
+  if numRides = 0 then 0.0 else float totalAge / float numRides
 
 let ridesByTripDuration ridedata ( startTime: int ) ( endTime: int ): int =
   ridedata
@@ -113,7 +113,6 @@ let main argv =
 
   printfn "Project 3: Divvy Rides Data Analysis with F#"
   printfn "CS 341, Spring 2025"
-  printfn "0.0"
   printfn "This application allows you to analyze and visualize"
   printfn "information about Divvy bike rides in Chicago, such as"
   printfn "the number of male/female riders, the average age, etc."
