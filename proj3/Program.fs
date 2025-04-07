@@ -2,6 +2,8 @@
 // @file Program.fs
 // @description This program takes in a csv file and outputs
 // statistics regarding that file for divvy bike data of chicago.
+// @UIN: 664908073
+// @NetID: mkhan387
 // --------------------------------------------------------------
 // 
 // ParseLine and ParseInput
