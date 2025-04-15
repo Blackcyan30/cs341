@@ -10,7 +10,7 @@ open System.Reflection
 [<assembly: System.Reflection.AssemblyCompanyAttribute("hw6")>]
 [<assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")>]
 [<assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")>]
-[<assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8444fead13d3e115426851e07b5721d75f308101")>]
+[<assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9f151de12cbbca9b3b9a4f21c030eb63a2279151")>]
 [<assembly: System.Reflection.AssemblyProductAttribute("hw6")>]
 [<assembly: System.Reflection.AssemblyTitleAttribute("hw6")>]
 [<assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")>]
