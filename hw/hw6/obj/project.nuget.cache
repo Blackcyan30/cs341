@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "FXjCbvTSF4BXnNXQRMVW8EqFE4x8tc4XInuUpDM+9d80MNh+zZ91TRO0xun5ge4ya1PNXgCeZlD4JixZpwFiWA==",
+  "success": true,
+  "projectFilePath": "/home/talha/Documents/uni/spring2025/cs341/hw/hw6/hw6.fsproj",
+  "expectedPackageFiles": [
+    "/home/talha/.nuget/packages/fsharp.core/8.0.102/fsharp.core.8.0.102.nupkg.sha512"
+  ],
+  "logs": []
+}
