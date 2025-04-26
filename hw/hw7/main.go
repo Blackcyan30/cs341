@@ -1,12 +1,28 @@
-// Header comment here!
+// Name: Talha Adnana
+// Course: CS 341, Prof. Kidane
+// Homework: 7
+// NetID: mkhan387
 
 package main
 
 import (
+	"bufio"
 	"fmt"
-	// "io"
-	// "os"
+	"os"
+	"strings"
 )
+
+func Assert(cond bool, msg string) {
+	if !cond {
+		panic("ASSERTION FAILED: " + msg)
+	}
+}
+
+func assert(cond bool, msg string) {
+	if !cond {
+		panic(msg)
+	}
+}
 
 // ----------------------------------------------------------------------
 //
@@ -44,16 +60,47 @@ func main() {
 	var userChoice string
 	fmt.Scanln(&userChoice)
 
-	//
-	// HERE ARE ALL THE PRINT STATEMENTS YOU NEED
-	//
-	// Reading in the file
-	fmt.Println("Initializing map using file...")
-	// os.Open() can be used to open a file for reading
-	fmt.Println("**Error opening file. Exiting program...")
-	// use os.Exit(1) if there is an error
-	// compare to io.EOF to check if you have reached the end of the file
-	fmt.Println("Done reading in file.")
+	// Reading the file
+	if userChoice != "N/A" {
+		fmt.Println("Initializing map using file...")
+		var file *os.File
+		var err error
+		file, err = os.Open(userChoice)
+
+		if err != nil {
+			fmt.Println("**Error opening file. Exiting program...")
+			file.Close()
+			os.Exit(1)
+		}
+
+		var scanner *bufio.Scanner = bufio.NewScanner(file)
+		Assert(scanner != nil, "Scanner should not be nil")
+
+		var fileEntry string
+		var fileEntryComponents []string
+		var passwordMapEntry Entry
+
+		for scanner.Scan() {
+			fileEntry = scanner.Text()
+			Assert(fileEntry != "", "File entry should not be empty")
+			fileEntryComponents = strings.Split(fileEntry, " ")
+			Assert(len(fileEntryComponents) == 3, "Invalid file format: File entry should have exactly 3 components")
+
+			var site string = fileEntryComponents[0]
+			var user string = fileEntryComponents[1]
+			var password string = fileEntryComponents[2]
+
+			passwordMapEntry = Entry{site: site, user: user, password: password}
+
+			var prevLen int = len(passwordMap[site])
+			passwordMap[site] = append(passwordMap[site], passwordMapEntry)
+
+			Assert(len(passwordMap[site]) == prevLen+1, "Failed to add entry to map")
+		}
+
+		fmt.Println("Done reading in file.")
+		file.Close()
+	}
 	//
 	// Menu options
 	fmt.Println("")
@@ -63,22 +110,183 @@ func main() {
 	fmt.Println("	 R to remove a website and/or user")
 	fmt.Println(" or X to exit the program.")
 	fmt.Print("Your choice --> ")
-	fmt.Println("**Error, unknown command. Try again.")
+
+	var userInput string
+	fmt.Scanln(&userInput)
+
+	for userInput != "X" {
+		switch userInput {
+		case "L":
+			listPasswordMap()
+		case "A":
+			addEntry()
+		case "R":
+			removeEntry()
+		default:
+			fmt.Println("**Error, unknown command. Try again.")
+		}
+		printMenu()
+		fmt.Scanln(&userInput)
+	}
+
+	// used
+	// fmt.Println("**Error, unknown command. Try again.")
 	//
 	// Listing the contents of the map
-	fmt.Printf("Website: %s\n", "google.com")
-	fmt.Printf("\t %s \t %s\n", "someUserName", "doNotUseThisP@ssw0rd!")
+	// fmt.Printf("Website: %s\n", "google.com")
+	// fmt.Printf("\t %s \t %s\n", "someUserName", "doNotUseThisP@ssw0rd!")
 	//
 	// Adding an entry
-	fmt.Print("Enter the site, username, and password (separated by spaces): ")
-	fmt.Println("**Error: Attempting to add a duplicate entry. Try again.")
+	// fmt.Print("Enter the site, username, and password (separated by spaces): ")
+	// fmt.Println("**Error: Attempting to add a duplicate entry. Try again.")
 	//
 	// Removing a website / user
-	fmt.Print("Enter the site and username (separated by spaces, username optional): ")
-	fmt.Println("**Error: Attempt to remove a website that does not exist in the map. Try again.")
-	fmt.Println("**Error: Attempt to remove a username that does not exist in the map. Try again.")
-	fmt.Println("**Error: Attempt to remove multiple users. Try again.")
+	// fmt.Print("Enter the site and username (separated by spaces, username optional): ")
+	// fmt.Println("**Error: Attempt to remove a website that does not exist in the map. Try again.")
+	// fmt.Println("**Error: Attempt to remove a username that does not exist in the map. Try again.")
+	// fmt.Println("**Error: Attempt to remove multiple users. Try again.")
 	//
 	// End of program
 	fmt.Println("Exiting program.")
+}
+
+func listPasswordMap() {
+	if len(passwordMap) == 0 {
+		return
+	}
+
+	for site, entries := range passwordMap {
+		fmt.Println("Website:", site)
+		for _, entry := range entries {
+			fmt.Printf("\t %s \t %s\n", entry.user, entry.password)
+		}
+	}
+}
+
+func addEntry() {
+	fmt.Print("Enter the site, username, and password (separated by spaces): ")
+
+	// Read user input
+	var reader *bufio.Reader = bufio.NewReader(os.Stdin)
+	var input string
+	var err error
+
+	input, err = reader.ReadString('\n')
+	if err != nil {
+		fmt.Println("Error reading input.")
+		return
+	}
+
+	// Tokenize the input
+	input = strings.TrimSpace(input)
+	var components []string = strings.Split(input, " ")
+
+	assert(len(components) == 3, "Invalid input format: Expected 3 components: site, username, and password.")
+
+	var site string = components[0]
+	var username string = components[1]
+	var password string = components[2]
+
+	// Checking for duplicate entry
+	entryArr, ok := passwordMap[site]
+	if ok {
+		for _, entry := range entryArr {
+			if entry.user == username {
+				fmt.Println("**Error: Attempting to add a duplicate entry. Try again.")
+				return
+			}
+		}
+	}
+
+	// Add new entry to the map
+	var newEntry Entry = Entry{site: site, user: username, password: password}
+	var prevLen int = len(passwordMap[site])
+	passwordMap[site] = append(passwordMap[site], newEntry)
+
+	Assert(len(passwordMap[site]) == prevLen+1, "Failed to add entry to map")
+	fmt.Println("Entry added successfully.")
+}
+
+func removeEntry() {
+	fmt.Print("Enter the site and username (separated by spaces, username optional): ")
+
+	// Read user input
+	var reader *bufio.Reader = bufio.NewReader(os.Stdin)
+	var input string
+	var err error
+
+	input, err = reader.ReadString('\n')
+	if err != nil {
+		fmt.Println("Error reading input.")
+		return
+	}
+
+	// Tokenize the input
+	input = strings.TrimSpace(input)
+	var components []string = strings.Split(input, " ")
+
+	assert(len(components) >= 1, "Invalid input format: Expected at least 1 component: site.")
+
+	var site string = components[0]
+
+	// Check if website exists
+	var entryArr EntrySlice
+	var ok bool
+	entryArr, ok = passwordMap[site]
+
+	if !ok {
+		fmt.Println("**Error: Attempt to remove a website that does not exist in the map. Try again.")
+		return
+	}
+
+	// If only site provided, remove entire site
+	if len(components) == 1 {
+		if len(entryArr) == 1 {
+			delete(passwordMap, site)
+			fmt.Println("Website removed successfully.")
+			return
+		}
+		fmt.Println("**Error: Attempt to remove multiple users. Try again.")
+		return
+	}
+
+	var newEntries EntrySlice
+	// If site and username provided, remove specific user
+	if len(components) == 2 {
+		var username string = components[1]
+		var found bool = false
+
+		for i := range entryArr {
+			if entryArr[i].user == username {
+				newEntries = append(entryArr[:i], entryArr[i+1:]...)
+				found = true
+				break
+			}
+		}
+
+		if found {
+			if len(newEntries) == 0 {
+				delete(passwordMap, site)
+				fmt.Println("All entries for the website removed successfully.")
+			} else {
+				passwordMap[site] = newEntries
+			}
+		} else {
+			fmt.Println("**Error: Attempt to remove a username that does not exist in the map. Try again.")
+			return
+		}
+
+		fmt.Println("User removed successfully.")
+		return
+	}
+}
+
+func printMenu() {
+	fmt.Println("")
+	fmt.Println("Select a menu option: ")
+	fmt.Println("	 L to list the contents of the map")
+	fmt.Println("	 A to add a new entry to the map")
+	fmt.Println("	 R to remove a website and/or user")
+	fmt.Println(" or X to exit the program.")
+	fmt.Print("Your choice --> ")
 }
