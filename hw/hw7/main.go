@@ -48,6 +48,10 @@ type EntrySlice []Entry
 //	value: slice of password entries (type: EntrySlice)
 var passwordMap map[string]EntrySlice
 
+var reader *bufio.Reader = bufio.NewReader(os.Stdin)
+var input string
+var err error
+
 // ----------------------------------------------------------------------
 //
 // main() function, program starts running here
@@ -57,21 +61,29 @@ func main() {
 	// Ask user if they want to initialize the map using a file
 	fmt.Print("Enter a filename if you would like to initialize the map using a file\n")
 	fmt.Print("(or enter N/A if the map should start as empty): ")
-	var userChoice string
-	fmt.Scanln(&userChoice)
+
+	input, err = reader.ReadString('\n')
+	if err != nil {
+		fmt.Println("Error reading input.")
+		os.Exit(1)
+		return
+	}
+	input = strings.TrimSpace(input)
 
 	// Reading the file
-	if userChoice != "N/A" {
-		fmt.Println("Initializing map using file...")
+	if input != "N/A" {
+		fmt.Println("\nInitializing map using file...")
 		var file *os.File
 		var err error
-		file, err = os.Open(userChoice)
+		file, err = os.Open(input)
 
 		if err != nil {
 			fmt.Println("**Error opening file. Exiting program...")
 			file.Close()
 			os.Exit(1)
 		}
+		// Trim the input to remove any leading/trailing whitespace
+		input = strings.TrimSpace(input)
 
 		var scanner *bufio.Scanner = bufio.NewScanner(file)
 		Assert(scanner != nil, "Scanner should not be nil")
@@ -101,21 +113,22 @@ func main() {
 		fmt.Println("Done reading in file.")
 		file.Close()
 	}
+
 	//
 	// Menu options
-	fmt.Println("")
-	fmt.Println("Select a menu option: ")
-	fmt.Println("	 L to list the contents of the map")
-	fmt.Println("	 A to add a new entry to the map")
-	fmt.Println("	 R to remove a website and/or user")
-	fmt.Println(" or X to exit the program.")
-	fmt.Print("Your choice --> ")
+	//
+	printMenu()
 
-	var userInput string
-	fmt.Scanln(&userInput)
+	input, err = reader.ReadString('\n')
+	if err != nil {
+		fmt.Println("Error reading input.")
+		os.Exit(1)
+		return
+	}
+	input = strings.TrimSpace(input)
 
-	for userInput != "X" {
-		switch userInput {
+	for input != "X" {
+		switch input {
 		case "L":
 			listPasswordMap()
 		case "A":
@@ -126,28 +139,27 @@ func main() {
 			fmt.Println("**Error, unknown command. Try again.")
 		}
 		printMenu()
-		fmt.Scanln(&userInput)
+		// fmt.Scanln(&input)
+		input, err = reader.ReadString('\n')
+		if err != nil {
+			fmt.Println("Error reading input.")
+			os.Exit(1)
+			return
+		}
+		input = strings.TrimSpace(input)
 	}
 
-	// used
-	// fmt.Println("**Error, unknown command. Try again.")
-	//
-	// Listing the contents of the map
-	// fmt.Printf("Website: %s\n", "google.com")
-	// fmt.Printf("\t %s \t %s\n", "someUserName", "doNotUseThisP@ssw0rd!")
-	//
-	// Adding an entry
-	// fmt.Print("Enter the site, username, and password (separated by spaces): ")
-	// fmt.Println("**Error: Attempting to add a duplicate entry. Try again.")
-	//
-	// Removing a website / user
-	// fmt.Print("Enter the site and username (separated by spaces, username optional): ")
-	// fmt.Println("**Error: Attempt to remove a website that does not exist in the map. Try again.")
-	// fmt.Println("**Error: Attempt to remove a username that does not exist in the map. Try again.")
-	// fmt.Println("**Error: Attempt to remove multiple users. Try again.")
-	//
-	// End of program
 	fmt.Println("Exiting program.")
+}
+
+func printMenu() {
+	fmt.Println("")
+	fmt.Println("Select a menu option: ")
+	fmt.Println("	 L to list the contents of the map")
+	fmt.Println("	 A to add a new entry to the map")
+	fmt.Println("	 R to remove a website and/or user")
+	fmt.Println(" or X to exit the program.")
+	fmt.Print("Your choice --> ")
 }
 
 func listPasswordMap() {
@@ -164,15 +176,11 @@ func listPasswordMap() {
 }
 
 func addEntry() {
-	fmt.Print("Enter the site, username, and password (separated by spaces): ")
-
-	// Read user input
-	var reader *bufio.Reader = bufio.NewReader(os.Stdin)
-	var input string
-	var err error
+	fmt.Printf("Enter the site, username, and password (separated by spaces): ")
 
 	input, err = reader.ReadString('\n')
 	if err != nil {
+		fmt.Println(err)
 		fmt.Println("Error reading input.")
 		return
 	}
@@ -192,7 +200,7 @@ func addEntry() {
 	if ok {
 		for _, entry := range entryArr {
 			if entry.user == username {
-				fmt.Println("**Error: Attempting to add a duplicate entry. Try again.")
+				fmt.Printf("**Error: Attempting to add a duplicate entry. Try again.")
 				return
 			}
 		}
@@ -204,16 +212,10 @@ func addEntry() {
 	passwordMap[site] = append(passwordMap[site], newEntry)
 
 	Assert(len(passwordMap[site]) == prevLen+1, "Failed to add entry to map")
-	fmt.Println("Entry added successfully.")
 }
 
 func removeEntry() {
 	fmt.Print("Enter the site and username (separated by spaces, username optional): ")
-
-	// Read user input
-	var reader *bufio.Reader = bufio.NewReader(os.Stdin)
-	var input string
-	var err error
 
 	input, err = reader.ReadString('\n')
 	if err != nil {
@@ -243,7 +245,6 @@ func removeEntry() {
 	if len(components) == 1 {
 		if len(entryArr) == 1 {
 			delete(passwordMap, site)
-			fmt.Println("Website removed successfully.")
 			return
 		}
 		fmt.Println("**Error: Attempt to remove multiple users. Try again.")
@@ -267,7 +268,6 @@ func removeEntry() {
 		if found {
 			if len(newEntries) == 0 {
 				delete(passwordMap, site)
-				fmt.Println("All entries for the website removed successfully.")
 			} else {
 				passwordMap[site] = newEntries
 			}
@@ -276,17 +276,6 @@ func removeEntry() {
 			return
 		}
 
-		fmt.Println("User removed successfully.")
 		return
 	}
-}
-
-func printMenu() {
-	fmt.Println("")
-	fmt.Println("Select a menu option: ")
-	fmt.Println("	 L to list the contents of the map")
-	fmt.Println("	 A to add a new entry to the map")
-	fmt.Println("	 R to remove a website and/or user")
-	fmt.Println(" or X to exit the program.")
-	fmt.Print("Your choice --> ")
 }
