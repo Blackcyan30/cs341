@@ -16,13 +16,28 @@ import (
 // TO DO: You may need to change this from an int to something else,
 // depending on your implementation
 // type Color int // orig definition
-type Color struct {
-	name             string
-	red, blue, green int
+// type Color struct { // Type I made but is not to be used.
+//
+//		name             string
+//		red, blue, green int
+//	}
+type Color string
+
+type rgb struct {
+	r, g, b int
 }
 
-var colorMap map[string]Color
-var wg = sync.WaitGroup{}
+var colorMap = map[Color]rgb{
+	"red":    {255, 0, 0},
+	"green":  {0, 255, 0},
+	"blue":   {0, 0, 255},
+	"yellow": {255, 255, 0},
+	"orange": {255, 164, 0},
+	"purple": {128, 0, 128},
+	"brown":  {165, 42, 42},
+	"black":  {0, 0, 0},
+	"white":  {255, 255, 255},
+}
 
 // Point struct
 //
@@ -120,7 +135,6 @@ var colorUnknownErr error
 func init() {
 	outOfBoundsErr = errors.New("**Error: Attempt to draw a figure out of bounds of the screen.")
 	colorUnknownErr = errors.New("**Error: Attempt to use an invalid color.")
-
 }
 
 // ----------------------------------------------------------------------
@@ -129,8 +143,8 @@ func init() {
 // Check if a given point would go out of bounds of the screen (return true)
 // or not (return false)
 func outOfBounds(p Point, scn screen) bool {
-	// TO DO: Implement this function
-	return true
+	x, y := scn.getMaxXY()
+	return p.x < 0 || p.y < 0 || p.x >= x || p.y >= y
 }
 
 // ----------------------------------------------------------------------
@@ -138,8 +152,8 @@ func outOfBounds(p Point, scn screen) bool {
 // colorUnknown()
 // Check if a given color is unknown (return true) or known (return false)
 func colorUnknown(c Color) bool {
-	// TO DO: Implement this function
-	return true
+	_, ok := colorMap[c]
+	return !ok
 }
 
 // ----------------------------------------------------------------------
@@ -148,7 +162,20 @@ func colorUnknown(c Color) bool {
 // Draws a filled in rectangle
 func (rect Rectangle) draw(scn screen) (err error) {
 	// TO DO: Implement this method
-	return
+	if outOfBounds(rect.ll, scn) || outOfBounds(rect.ur, scn) {
+		return outOfBoundsErr
+	}
+	if colorUnknown(rect.c) {
+		return colorUnknownErr
+	}
+
+	for y := rect.ll.y; y < rect.ur.y; y++ {
+		for x := rect.ll.x; x < rect.ur.x; x++ {
+			scn.drawPixel(x, y, rect.c)
+		}
+	}
+
+	return nil
 }
 
 // ----------------------------------------------------------------------
@@ -156,8 +183,9 @@ func (rect Rectangle) draw(scn screen) (err error) {
 // printShape() method with Rectangle receiver
 // Prints the type (a Rectangle)
 func (rect Rectangle) printShape() string {
-	// TO DO: Implement this method
-	return ""
+	var ll, ur Point = rect.ll, rect.ur
+	return fmt.Sprintf("Rectangle: (%d,%d) to (%d,%d)",
+		ll.x, ll.y, ur.x, ur.y)
 }
 
 // ----------------------------------------------------------------------
@@ -235,8 +263,14 @@ func (tri Triangle) draw(scn screen) (err error) {
 // printShape() method with Triangle receiver
 // Prints the type (a Triangle)
 func (tri Triangle) printShape() string {
-	// TO DO: Implement this method
-	return ""
+	var x1, x2, x3 int
+	var y1, y2, y3 int
+
+	x1, x2, x3 = tri.pt0.x, tri.pt1.x, tri.pt2.x
+	y1, y2, y3 = tri.pt0.y, tri.pt1.y, tri.pt2.y
+
+	return fmt.Sprintf("Triangle: (%d,%d), (%d,%d), (%d,%d)",
+		x1, y1, x2, y2, x3, y3)
 }
 
 // ----------------------------------------------------------------------
@@ -252,8 +286,14 @@ func insideCircle(center, tile Point, r float64) (inside bool) {
 	var distance float64 = math.Sqrt(dx*dx + dy*dy)
 	return distance <= r
 }
+
 func (circ Circle) draw(scn screen) (err error) {
-	// TO DO: Check if drawing this circle would cause either error
+	if outOfBounds(circ.center, scn) {
+		return outOfBoundsErr
+	}
+	if colorUnknown(circ.c) {
+		return colorUnknownErr
+	}
 
 	height := circ.center.y + circ.r
 	width := circ.center.x + circ.r
@@ -272,16 +312,37 @@ func (circ Circle) draw(scn screen) (err error) {
 // printShape() method with Circle receiver
 // Prints the type (a Circle)
 func (circ Circle) printShape() string {
-	// TO DO: Implement this method
-	return ""
+	var c Point
+	var r int
+	c, r = circ.center, circ.r
+
+	return fmt.Sprintf("Circle: centered around (%d,%d) with radius %d",
+		c.x, c.y, r)
 }
 
 // ----------------------------------------------------------------------
 //
 // clearScreen() method with Display pointer receiver
 // Clears the screen by resetting it to white
+// TODO: This func has a flaw. Fix maping of color and make it pick values form coloMap
+// while making it so that it also draws on the screen
 func (display *Display) clearScreen() {
-	// TO DO: Implement this method
+
+	var rows, cols int
+	rows, cols = display.maxY, display.maxX
+	var wg sync.WaitGroup
+	wg.Add(rows)
+	white := Color("white")
+
+	for r := 0; r < rows; r++ {
+		go func(row int) {
+			defer wg.Done()
+			for c := 0; c < cols; c++ {
+				display.matrix[row][c] = white
+			}
+		}(r)
+	}
+	wg.Wait()
 }
 
 // ----------------------------------------------------------------------
@@ -296,9 +357,17 @@ func (display *Display) initialize(x, y int) {
 
 	display.matrix = make([][]Color, y)
 
+	var wg sync.WaitGroup
+	wg.Add(y)
+
 	for row := 0; row < y; row++ {
-		display.matrix[row] = make([]Color, x)
+		go func(r int) {
+			defer wg.Done()
+			display.matrix[r] = make([]Color, x)
+		}(row)
 	}
+	wg.Wait()
+	display.clearScreen()
 }
 
 // ----------------------------------------------------------------------
@@ -306,9 +375,7 @@ func (display *Display) initialize(x, y int) {
 // getMaxXY() method with Display pointer receiver
 // Retrieve and return the maxX and maxY dimensions of the screen
 func (display *Display) getMaxXY() (x, y int) {
-	// TO DO: Implement this method
-
-	return
+	return display.maxX, display.maxY
 }
 
 // ----------------------------------------------------------------------
@@ -316,8 +383,11 @@ func (display *Display) getMaxXY() (x, y int) {
 // drawPixel() method with Display pointer receiver
 // Draw the pixel with a given color at a given location
 func (display *Display) drawPixel(x, y int, c Color) (err error) {
-	// TO DO: Implement this method
-	return
+	if x < 0 || y < 0 || x >= display.maxX || y >= display.maxY {
+		return outOfBoundsErr
+	}
+	display.matrix[y][x] = c
+	return nil
 }
 
 // ----------------------------------------------------------------------
@@ -325,8 +395,10 @@ func (display *Display) drawPixel(x, y int, c Color) (err error) {
 // getPixel() method with Display pointer receiver
 // Retrieve and return the color of the pixel at a given location
 func (display *Display) getPixel(x, y int) (c Color, err error) {
-	// TO DO: Implement this method
-	return
+	if x < 0 || y < 0 || x >= display.maxX || y >= display.maxY {
+		return "", outOfBoundsErr
+	}
+	return display.matrix[y][x], nil
 }
 
 // ----------------------------------------------------------------------
@@ -340,10 +412,26 @@ func (display *Display) screenShot(f string) (err error) {
 	err = e
 	if err != nil {
 		fmt.Println("**Error creating ppm file: ", err)
-		return
+		return err
 	}
+	defer file.Close()
+
+	width, height := display.maxX, display.maxY
 
 	fmt.Fprintln(file, "P3")
-	// TO DO: Finish implementing this method
-	return
+	fmt.Fprintf(file, "%d %d\n", height, width)
+	fmt.Fprintln(file, "255")
+
+	for row := 0; row < height; row++ {
+		for col := 0; col < width; col++ {
+			var c Color
+			var colour rgb
+			c = display.matrix[row][col]
+			colour = colorMap[c]
+			fmt.Fprintf(file, "%d %d %d ", colour.r, colour.g, colour.b)
+		}
+		fmt.Fprintln(file)
+	}
+
+	return nil
 }
